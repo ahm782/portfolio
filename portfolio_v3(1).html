@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="scroll-behavior:auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
+
+        /* PERFORMANCE HINTS */
+        canvas { will-change: transform; }
+        .cursor-dot, .cursor-ring { will-change: left, top; }
+        .navbar { will-change: transform; }
+        * { -webkit-tap-highlight-color: transparent; }
+        
+        /* Smooth scrolling via CSS as fallback */
+        @media (prefers-reduced-motion: no-preference) {
+            html { scroll-behavior: smooth; }
+        }
+
+
+        @media (max-width: 768px) {
+            #neural-bg { display: none !important; }
+        }
         /* ═══════════════════════════════════════════
            CSS CUSTOM PROPERTIES
            ═══════════════════════════════════════════ */
@@ -45,7 +61,7 @@
         }
 
         html {
-            scroll-behavior: smooth;
+            scroll-behavior: auto; /* Lenis handles this */
             overflow-x: hidden;
         }
 
@@ -3249,11 +3265,13 @@
 
     // ── Lenis Smooth Scroll (Effect 5) ─────────
     const lenis = new Lenis({
-        duration: 1.4,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        duration: 1.2,
+        easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
         smoothWheel: true,
-        wheelMultiplier: 0.85,
-        touchMultiplier: 2,
+        wheelMultiplier: 1.2,
+        touchMultiplier: 2.5,
+        syncTouch: true,
+        syncTouchLerp: 0.06,
         infinite: false,
     });
 
@@ -3265,11 +3283,7 @@
 
     gsap.ticker.lagSmoothing(0);
 
-    function raf(time) {
-        lenis.raf(time);
-        requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
+    // Single RAF via GSAP ticker only (no duplicate loop)
 
     // ── Preloader ──────────────────────────────
     (function() {
@@ -3326,7 +3340,7 @@
         animateRing();
 
         // Particle Trail logic
-        const maxParticles = 20;
+        const maxParticles = 6;
         const particlePool = [];
         const activeParticles = [];
         let lastX = 0;
@@ -3490,7 +3504,7 @@
         if (!canvas) return;
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x05050A, 0.04);
@@ -3499,7 +3513,7 @@
         camera.position.z = 120; // Move camera back to fit the text
 
         // Particle System
-        const particleCount = 3000;
+        const particleCount = 800;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const targetPositions = new Float32Array(particleCount * 3);
@@ -3579,11 +3593,11 @@
 
         // Keep wireframes but more subtle
         const goldWire = new THREE.MeshBasicMaterial({ color: 0xC9A84C, wireframe: true, transparent: true, opacity: 0.1 });
-        const icosahedron = new THREE.Mesh(new THREE.IcosahedronGeometry(15, 1), goldWire);
+        const icosahedron = new THREE.Mesh(new THREE.IcosahedronGeometry(15, 0), goldWire);
         icosahedron.position.set(-50, 30, -50);
         scene.add(icosahedron);
 
-        const torus = new THREE.Mesh(new THREE.TorusGeometry(12, 1.5, 16, 40), goldWire.clone());
+        const torus = new THREE.Mesh(new THREE.TorusGeometry(12, 1.5, 8, 24), goldWire.clone());
         torus.position.set(50, 20, -40);
         scene.add(torus);
 
@@ -3699,7 +3713,7 @@
             renderer.setSize(section.offsetWidth, section.offsetHeight);
         }
         setSize();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, section.offsetWidth / section.offsetHeight, 0.1, 100);
@@ -3749,7 +3763,7 @@
             renderer.setSize(section.offsetWidth, section.offsetHeight);
         }
         setSize();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, section.offsetWidth / section.offsetHeight, 0.1, 100);
@@ -4588,14 +4602,14 @@
 
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        const nodeCount = isMobile ? 40 : 80;
+        const nodeCount = isMobile ? 20 : 40;
         const maxDist = 120;
 
         const nodes = [];
-        const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+        const geometry = new THREE.SphereGeometry(0.5, 6, 6);
         const material = new THREE.MeshBasicMaterial({ color: 0xC9A84C, transparent: true, opacity: 0.8 });
 
         // Create nodes
